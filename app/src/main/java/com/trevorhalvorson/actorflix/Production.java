@@ -3,10 +3,12 @@ package com.trevorhalvorson.actorflix;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Created by Trevor on 8/20/2015.
  */
-public class Production {
+public class Production implements Serializable {
 
     @Expose
     private Integer unit;

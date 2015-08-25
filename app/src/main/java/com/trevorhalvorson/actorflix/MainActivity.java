@@ -1,7 +1,11 @@
 package com.trevorhalvorson.actorflix;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -14,18 +18,23 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int SPEECH_REQUEST_CODE = 0;
 
     private DrawerLayout mDrawerLayout;
     private SearchView mSearchView;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         final ActionBar actionBar = getSupportActionBar();
@@ -63,18 +72,8 @@ public class MainActivity extends AppCompatActivity {
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Log.i(TAG, "Submitted Query: " + query);
                 if (query.length() > 0) {
-                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                    Fragment productionListFragment = new ProductionListFragment();
-                    Bundle args = new Bundle();
-                    args.putString("query_string", query);
-                    productionListFragment.setArguments(args);
-
-                    transaction.replace(R.id.fragment_container, productionListFragment);
-                    transaction.disallowAddToBackStack();
-                    transaction.commit();
-
+                    startSearch(query);
                 }
                 return false;
             }
@@ -94,10 +93,57 @@ public class MainActivity extends AppCompatActivity {
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
                 return true;
-            case R.id.action_settings:
+            case R.id.action_voice:
+                voiceSearch();
                 return true;
-
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
+    }
+
+    private void startSearch(String query) {
+        Log.i(TAG, "Submitted Query: " + query);
+        toolbar.setTitle(query);
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment productionListFragment = new ProductionListFragment();
+        Bundle args = new Bundle();
+        args.putString("query_string", query);
+        productionListFragment.setArguments(args);
+
+        transaction.replace(R.id.fragment_container, productionListFragment);
+        transaction.disallowAddToBackStack();
+        transaction.commit();
+    }
+
+    private void voiceSearch() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                getString(R.string.menu_voice_prompt));
+        try {
+            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+        } catch (ActivityNotFoundException e) {
+            Snackbar.make(findViewById(R.id.fragment_container), getString(R.string.voice_error_text),
+                    Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case SPEECH_REQUEST_CODE:
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(
+                            RecognizerIntent.EXTRA_RESULTS);
+                    startSearch(result.get(0));
+
+                    Log.i(TAG, "onActivityResult " + result);
+                }
+        }
     }
 }

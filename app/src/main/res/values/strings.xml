@@ -6,5 +6,8 @@
     <string name="search">Search</string>
     <string name="search_view_hint">Search for an actor</string>
     <string name="drawer_home">Home</string>
+    <string name="action_voice">Voice Search</string>
+    <string name="menu_voice_prompt">Search with Voice</string>
+    <string name="voice_error_text">Voice search not supported</string>
 
 </resources>

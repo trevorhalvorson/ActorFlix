@@ -35,7 +35,9 @@ public class ProductionListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_production_list, container, false);
+        mAdapter = new ProductionAdapter(mProductions);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.movie_list_recycler_view);
+        mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
 
@@ -55,9 +57,7 @@ public class ProductionListFragment extends Fragment {
                 Log.i(TAG, "API Response: " + response.getUrl());
                 mProductions.clear();
                 mProductions.addAll(productions);
-                mAdapter = new ProductionAdapter(mProductions);
-                mRecyclerView.setAdapter(mAdapter);
-
+                mAdapter.notifyDataSetChanged();
             }
 
             @Override
