@@ -1,10 +1,9 @@
 package com.trevorhalvorson.actorflix;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -26,6 +25,7 @@ import retrofit.client.Response;
 public class ProductionListFragment extends Fragment {
     private static final String TAG = ProductionListFragment.class.getSimpleName();
     public static final String ENDPOINT = "http://netflixroulette.net";
+    private static final String DIALOG_DETAIL = "com.trevorhalvorson.ProductionDetailFragment";
 
     private String mQuery;
     private ArrayList<Production> mProductions = new ArrayList<>();
@@ -74,7 +74,7 @@ public class ProductionListFragment extends Fragment {
         private Production mProduction;
         private TextView mTitleTextView;
         private TextView mCategoryTextView;
-        private TextView mYearTextView;
+        private TextView mRuntimeTextView;
 
 
         public ProductionHolder(View itemView) {
@@ -85,23 +85,23 @@ public class ProductionListFragment extends Fragment {
                     itemView.findViewById(R.id.list_item_title_text_view);
             mCategoryTextView = (TextView)
                     itemView.findViewById(R.id.list_item_category_text_view);
-            mYearTextView = (TextView)
-                    itemView.findViewById(R.id.list_item_year_text_view);
+            mRuntimeTextView = (TextView)
+                    itemView.findViewById(R.id.list_item_runtime_text_view);
         }
 
         public void bindProduction(Production production) {
             mProduction = production;
-            mTitleTextView.setText(mProduction.getShowTitle());
+            mTitleTextView.setText(mProduction.getShowTitle() + " (" + mProduction.getReleaseYear() + ")");
             mCategoryTextView.setText(mProduction.getCategory());
-            mYearTextView.setText(mProduction.getReleaseYear());
+            mRuntimeTextView.setText(mProduction.getRuntime());
         }
 
         @Override
         public void onClick(View v) {
-            //TODO Launch Production Detail screen
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://www.netflix.com/title/" + mProduction.getShowId()));
-            startActivity(intent);
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            ProductionDetailFragment dialog = ProductionDetailFragment
+                    .newInstance(mProduction);
+            dialog.show(fragmentManager, DIALOG_DETAIL);
         }
     }
 

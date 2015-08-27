@@ -9,5 +9,7 @@
     <string name="action_voice">Voice Search</string>
     <string name="menu_voice_prompt">Search with Voice</string>
     <string name="voice_error_text">Voice search not supported</string>
+    <string name="dialog_close_button_text">Close</string>
+    <string name="dialog_watch_button_text">Watch on Netflix</string>
 
 </resources>
