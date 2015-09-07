@@ -50,7 +50,7 @@ public class ProductionDetailFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mView = LayoutInflater.from(getActivity())
-                .inflate(R.layout.dialog_production_detail_image, null);
+                .inflate(R.layout.dialog_production_detail, null);
 
         mProduction = (Production) getArguments().getSerializable(ARG_PRODUCTION);
         mImageView = (ImageView) mView.findViewById(R.id.dialog_poster_image_view);
@@ -82,12 +82,12 @@ public class ProductionDetailFragment extends DialogFragment {
 
         mDirectorTextView.setText("Directed By: " + mProduction.getDirector());
         mCastTextView.setText("Starring: " + mProduction.getShowCast());
-        mRatingTextView.setText("Rating: " + mProduction.getRating() + "/5");
+        mRatingTextView.setText("Rating: " + mProduction.getRating());
         mSummaryTextView.setText(mProduction.getSummary());
 
         return new AlertDialog.Builder(getActivity())
                 .setView(mView)
-                .setTitle(mProduction.getShowTitle() + " (" + mProduction.getReleaseYear() + ")")
+                .setTitle(mProduction.getShowTitle())
                 .setPositiveButton(getString(R.string.dialog_watch_button_text), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

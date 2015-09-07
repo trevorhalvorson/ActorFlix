@@ -9,7 +9,7 @@
         app:showAsAction="always"/>
     <item
         android:id="@+id/action_voice"
-        android:icon="@drawable/ic_keyboard_voice_black_24dp"
+        android:icon="@drawable/ic_keyboard_voice_white"
         android:orderInCategory="99"
         android:title="@string/action_voice"
         app:showAsAction="ifRoom"/>

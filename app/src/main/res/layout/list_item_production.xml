@@ -1,36 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="4dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="240dp"
+              android:layout_margin="1dp"
+              android:id="@+id/list_item_layout"
+              android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/list_item_title_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@+id/list_item_runtime_text_view"
-        android:layout_toStartOf="@+id/list_item_runtime_text_view"
-        android:padding="4dp"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        tools:text="Title"/>
+    <ImageView
+        android:id="@+id/list_item_poster"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
-    <TextView
-        android:id="@+id/list_item_category_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/list_item_title_text_view"
-        android:padding="4dp"
-        tools:text="Category"/>
+    <LinearLayout
+        android:id="@+id/list_item_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/colorPrimaryDark"
+        android:orientation="vertical"
+        android:padding="4dp">
 
-    <TextView
-        android:id="@+id/list_item_runtime_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:padding="4dp"
-        tools:text="120 min"/>
+        <TextView
+            android:id="@+id/list_item_title_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:layout_marginBottom="4dp"
+            android:textColor="@color/colorAccent"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="Title"/>
 
-</RelativeLayout>
+        <TextView
+            android:id="@+id/list_item_rating_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:textColor="@color/colorAccent"
+            tools:text="Rating"/>
+
+        <TextView
+            android:id="@+id/list_item_category_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:textColor="@color/colorAccent"
+            tools:text="Category"/>
+
+        <TextView
+            android:id="@+id/list_item_runtime_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:textColor="@color/colorAccent"
+            tools:text="120 min"/>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -27,15 +27,15 @@ public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
     private SearchView mSearchView;
-    private Toolbar toolbar;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
         final ActionBar actionBar = getSupportActionBar();
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startSearch(String query) {
         Log.i(TAG, "Submitted Query: " + query);
-        toolbar.setTitle(query);
+        mToolbar.setTitle(query);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         Fragment productionListFragment = new ProductionListFragment();

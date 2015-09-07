@@ -71,7 +71,7 @@ public class Production implements Serializable {
      * @return The showTitle
      */
     public String getShowTitle() {
-        return showTitle;
+        return showTitle + " (" + releaseYear + ")";
     }
 
     /**
@@ -99,7 +99,7 @@ public class Production implements Serializable {
      * @return The rating
      */
     public String getRating() {
-        return rating;
+        return rating + "/5";
     }
 
     /**
