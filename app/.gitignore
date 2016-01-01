@@ -1,1 +1,47 @@
+### Android ###
+
+# IntelliJ / Android Studio files
+*.iml
+*.iws
+/.idea/workspace.xml
+/.idea/libraries
+.navigation/
+captures/
+
+# Files for the Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+classes/
+gen-external-apklibs/
+
+# Built application files
+*.apk
+*.ap_
+
+# Signing files
+.signing/
+
+# Gradle files
+.gradle
 /build
+
+# Local config file
+/local.properties
+
+# Log Files
+*.log
+
+# OS files
+Thumbs.db
+ehthumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
