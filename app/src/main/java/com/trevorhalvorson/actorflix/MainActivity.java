@@ -1,119 +1,117 @@
 package com.trevorhalvorson.actorflix;
 
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
-import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.GsonConverterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int SPEECH_REQUEST_CODE = 0;
 
-    private DrawerLayout mDrawerLayout;
+    private List<Production> mProductions;
+    private FlixService mService;
+    private ProductionAdapter mProductionAdapter;
+    private ProgressDialog mProgressDialog;
+    private RecyclerView mRecyclerView;
     private SearchView mSearchView;
-    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        mProductionAdapter = new ProductionAdapter(mProductions, this);
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        if (navigationView != null) {
-            setupDrawerContent(navigationView);
-        }
-
-    }
-
-    private void setupDrawerContent(NavigationView navigationView) {
-        navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
+        mRecyclerView = (RecyclerView) findViewById(R.id.production_recycler_view);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        mRecyclerView.setAdapter(mProductionAdapter);
+        mRecyclerView.addOnItemTouchListener(
+                new RecyclerViewItemClickListener(this, new RecyclerViewItemClickListener.OnItemClickListener() {
                     @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        menuItem.setChecked(true);
-                        mDrawerLayout.closeDrawers();
-                        return true;
+                    public void onItemClick(View view, int position) {
+                        Intent detailIntent = new Intent(MainActivity.this, DetailActivity.class);
+                        detailIntent.putExtra(DetailActivity.EXTRA_PARAM, mProductions.get(position));
+
+                        Pair imagePair = new Pair<>(view.findViewById(R.id.list_item_poster_image_view), DetailActivity.IMAGE_TRANSITION_NAME);
+                        Pair titlePair = new Pair<>(view.findViewById(R.id.list_item_title_text_view), DetailActivity.TITLE_TRANSITION_NAME);
+                        Pair backgroundPair = new Pair<>(view.findViewById(R.id.list_item_info_layout), DetailActivity.BACKGROUND_TRANSITION_NAME);
+
+                        ActivityOptionsCompat transitionActivityOptions =
+                                ActivityOptionsCompat.makeSceneTransitionAnimation(
+                                        MainActivity.this, imagePair, titlePair, backgroundPair);
+
+                        ActivityCompat.startActivity(MainActivity.this,
+                                detailIntent, transitionActivityOptions.toBundle());
                     }
-                });
-    }
+                }));
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        // Retrofit setup
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://netflixroulette.net")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
-        final MenuItem searchItem = menu.findItem(R.id.menu_item_search);
-        mSearchView = (SearchView) searchItem.getActionView();
-        mSearchView.setQueryHint(getString(R.string.search_view_hint));
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                if (query.length() > 0) {
-                    startSearch(query);
-                }
-                return false;
-            }
+        mService = retrofit.create(FlixService.class);
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
-        });
-
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
-                return true;
-            case R.id.action_voice:
-                voiceSearch();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+        // Auto-search after startup for testing
+        startSearch("Harrison Ford");
     }
 
     private void startSearch(String query) {
-        Log.i(TAG, "Submitted Query: " + query);
-        mToolbar.setTitle(query);
+        mProgressDialog = ProgressDialog.show(this, "Loading Productions",
+                "Please wait...", true);
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment productionListFragment = new ProductionListFragment();
-        Bundle args = new Bundle();
-        args.putString("query_string", query);
-        productionListFragment.setArguments(args);
+        Call<List<Production>> productions = mService.listProductions(query);
+        productions.enqueue(new Callback<List<Production>>() {
+            @Override
+            public void onResponse(Response<List<Production>> response, Retrofit retrofit) {
+                mProductions = response.body();
 
-        transaction.replace(R.id.fragment_container, productionListFragment);
-        transaction.disallowAddToBackStack();
-        transaction.commit();
+                mProductionAdapter = new ProductionAdapter(mProductions, getApplicationContext());
+                mRecyclerView.setAdapter(mProductionAdapter);
+
+                mProgressDialog.dismiss();
+
+                // Alert user if no results are returned from the service
+                if (mProductions == null) {
+                    Snackbar.make(mRecyclerView, "No results found.", Snackbar.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 
     private void voiceSearch() {
@@ -126,8 +124,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             startActivityForResult(intent, SPEECH_REQUEST_CODE);
         } catch (ActivityNotFoundException e) {
-            Snackbar.make(findViewById(R.id.fragment_container), getString(R.string.voice_error_text),
-                    Snackbar.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -145,5 +142,42 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "onActivityResult " + result);
                 }
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        final MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        mSearchView = (SearchView) searchItem.getActionView();
+        mSearchView.setQueryHint(getString(R.string.search_view_hint));
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if (query.trim().length() > 0) {
+                    startSearch(query);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_voice:
+                voiceSearch();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 }

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout android:id="@+id/list_item_layout"
+              xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="240dp"
               android:layout_margin="1dp"
-              android:id="@+id/list_item_layout"
               android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/list_item_poster"
+        android:id="@+id/list_item_poster_image_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
@@ -16,9 +16,7 @@
     <LinearLayout
         android:id="@+id/list_item_info_layout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@color/colorPrimaryDark"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="4dp">
 
@@ -26,37 +24,12 @@
             android:id="@+id/list_item_title_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="2dp"
             android:layout_marginBottom="4dp"
-            android:textColor="@color/colorAccent"
+            android:padding="2dp"
+            android:textColor="@color/accent"
             android:textSize="14sp"
             android:textStyle="bold"
             tools:text="Title"/>
-
-        <TextView
-            android:id="@+id/list_item_rating_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:textColor="@color/colorAccent"
-            tools:text="Rating"/>
-
-        <TextView
-            android:id="@+id/list_item_category_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:textColor="@color/colorAccent"
-            tools:text="Category"/>
-
-        <TextView
-            android:id="@+id/list_item_runtime_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:textColor="@color/colorAccent"
-            tools:text="120 min"/>
-
     </LinearLayout>
 
 </LinearLayout>

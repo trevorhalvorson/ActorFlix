@@ -11,5 +11,8 @@
     <string name="voice_error_text">Voice search not supported</string>
     <string name="dialog_close_button_text">Close</string>
     <string name="dialog_watch_button_text">Watch on Netflix</string>
-
+    <string name="title_activity_detail">DetailActivity</string>
+    <string name="transition_image">transition_image</string>
+    <string name="transition_title">transition_title</string>
+    <string name="production_poster">Production Poster</string>
 </resources>
