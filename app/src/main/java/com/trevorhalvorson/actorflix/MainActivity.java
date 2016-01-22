@@ -34,12 +34,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int SPEECH_REQUEST_CODE = 0;
 
-    private List<Production> mProductions;
-    private FlixService mService;
-    private ProductionAdapter mProductionAdapter;
-    private ProgressDialog mProgressDialog;
-    private RecyclerView mRecyclerView;
-    private SearchView mSearchView;
+    private List<Production> productionList;
+    private FlixService flixService;
+    private ProductionAdapter productionAdapter;
+    private ProgressDialog progressDialog;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,17 +48,17 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mProductionAdapter = new ProductionAdapter(mProductions, this);
+        productionAdapter = new ProductionAdapter(productionList, this);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.production_recycler_view);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        mRecyclerView.setAdapter(mProductionAdapter);
-        mRecyclerView.addOnItemTouchListener(
+        recyclerView = (RecyclerView) findViewById(R.id.production_recycler_view);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setAdapter(productionAdapter);
+        recyclerView.addOnItemTouchListener(
                 new RecyclerViewItemClickListener(this, new RecyclerViewItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
                         Intent detailIntent = new Intent(MainActivity.this, DetailActivity.class);
-                        detailIntent.putExtra(DetailActivity.EXTRA_PARAM, mProductions.get(position));
+                        detailIntent.putExtra(DetailActivity.EXTRA_PARAM, productionList.get(position));
 
                         Pair imagePair = new Pair<>(view.findViewById(R.id.list_item_poster_image_view), DetailActivity.IMAGE_TRANSITION_NAME);
                         Pair titlePair = new Pair<>(view.findViewById(R.id.list_item_title_text_view), DetailActivity.TITLE_TRANSITION_NAME);
@@ -80,30 +79,30 @@ public class MainActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        mService = retrofit.create(FlixService.class);
+        flixService = retrofit.create(FlixService.class);
 
         // Auto-search after startup for testing
         startSearch("Harrison Ford");
     }
 
     private void startSearch(String query) {
-        mProgressDialog = ProgressDialog.show(this, "Loading Productions",
+        progressDialog = ProgressDialog.show(this, "Loading Productions",
                 "Please wait...", true);
 
-        Call<List<Production>> productions = mService.listProductions(query);
+        Call<List<Production>> productions = flixService.listProductions(query);
         productions.enqueue(new Callback<List<Production>>() {
             @Override
             public void onResponse(Response<List<Production>> response, Retrofit retrofit) {
-                mProductions = response.body();
+                productionList = response.body();
 
-                mProductionAdapter = new ProductionAdapter(mProductions, getApplicationContext());
-                mRecyclerView.setAdapter(mProductionAdapter);
+                productionAdapter = new ProductionAdapter(productionList, getApplicationContext());
+                recyclerView.setAdapter(productionAdapter);
 
-                mProgressDialog.dismiss();
+                progressDialog.dismiss();
 
                 // Alert user if no results are returned from the service
-                if (mProductions == null) {
-                    Snackbar.make(mRecyclerView, "No results found.", Snackbar.LENGTH_LONG).show();
+                if (productionList == null) {
+                    Snackbar.make(recyclerView, "No results found.", Snackbar.LENGTH_LONG).show();
                 }
             }
 
@@ -149,9 +148,10 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         final MenuItem searchItem = menu.findItem(R.id.menu_item_search);
-        mSearchView = (SearchView) searchItem.getActionView();
-        mSearchView.setQueryHint(getString(R.string.search_view_hint));
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setQueryHint(getString(R.string.search_view_hint));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query.trim().length() > 0) {

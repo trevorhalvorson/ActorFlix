@@ -22,12 +22,12 @@ import java.util.List;
  */
 public class ProductionAdapter extends RecyclerView.Adapter<ProductionAdapter.Holder> {
 
-    private List<Production> mProductions;
-    private Context mContext;
+    private List<Production> productionList;
+    private Context context;
 
     public ProductionAdapter(List<Production> productions, Context context) {
-        mProductions = productions;
-        mContext = context;
+        productionList = productions;
+        this.context = context;
     }
 
     @Override
@@ -39,45 +39,45 @@ public class ProductionAdapter extends RecyclerView.Adapter<ProductionAdapter.Ho
 
     @Override
     public int getItemCount() {
-        return (mProductions != null ? mProductions.size() : 0);
+        return (productionList != null ? productionList.size() : 0);
     }
 
     @Override
     public void onBindViewHolder(Holder holder, int position) {
-        Production production = mProductions.get(position);
+        Production production = productionList.get(position);
         holder.bindProduction(production);
     }
 
     public class Holder extends RecyclerView.ViewHolder {
-        private Production mProduction;
-        private ImageView mPosterImageView;
-        private TextView mTitleTextView;
-        private LinearLayout mItemBackground;
+        private Production production;
+        private ImageView posterImageView;
+        private TextView titleTextView;
+        private LinearLayout itemBackground;
 
         public Holder(View itemView) {
             super(itemView);
-            mPosterImageView = (ImageView) itemView.findViewById(R.id.list_item_poster_image_view);
-            mTitleTextView = (TextView) itemView.findViewById(R.id.list_item_title_text_view);
-            mItemBackground = (LinearLayout) itemView.findViewById(R.id.list_item_info_layout);
+            posterImageView = (ImageView) itemView.findViewById(R.id.list_item_poster_image_view);
+            titleTextView = (TextView) itemView.findViewById(R.id.list_item_title_text_view);
+            itemBackground = (LinearLayout) itemView.findViewById(R.id.list_item_info_layout);
         }
 
         private void bindProduction(Production production) {
-            mProduction = production;
+            this.production = production;
 
-            Picasso.with(mPosterImageView.getContext()).load(mProduction.getPoster())
+            Picasso.with(context).load(this.production.getPoster())
                     .placeholder(R.drawable.ic_movie_red)
                     .resize(240, 240)
                     .centerCrop()
-                    .into(mPosterImageView, new com.squareup.picasso.Callback() {
+                    .into(posterImageView, new com.squareup.picasso.Callback() {
                         @Override
                         public void onSuccess() {
-                            Bitmap bitmap = loadBitmap(mPosterImageView);
+                            Bitmap bitmap = loadBitmap(posterImageView);
                             Palette.from(bitmap).generate(
                                     new Palette.PaletteAsyncListener() {
                                         @Override
                                         public void onGenerated(Palette palette) {
-                                            mItemBackground.setBackgroundColor(palette.getDarkVibrantColor(Color.BLACK));
-                                            mPosterImageView.setBackgroundColor(palette.getVibrantColor(Color.WHITE));
+                                            itemBackground.setBackgroundColor(palette.getDarkVibrantColor(Color.BLACK));
+                                            posterImageView.setBackgroundColor(palette.getVibrantColor(Color.WHITE));
                                         }
                                     }
                             );
@@ -89,7 +89,7 @@ public class ProductionAdapter extends RecyclerView.Adapter<ProductionAdapter.Ho
                         }
                     });
 
-            mTitleTextView.setText(mProduction.getShowTitle());
+            titleTextView.setText(this.production.getShowTitle());
         }
     }
 
