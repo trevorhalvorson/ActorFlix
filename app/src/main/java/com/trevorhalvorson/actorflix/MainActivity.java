@@ -14,28 +14,28 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import retrofit.Call;
-import retrofit.Callback;
-import retrofit.GsonConverterFactory;
-import retrofit.Response;
-import retrofit.Retrofit;
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
+
 
 public class MainActivity extends AppCompatActivity {
+
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int SPEECH_REQUEST_CODE = 0;
 
+    private FlixApi flixService;
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+
     private List<Production> productionList;
-    private FlixService flixService;
     private ProductionAdapter productionAdapter;
     private ProgressDialog progressDialog;
     private RecyclerView recyclerView;
@@ -48,69 +48,81 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        productionList = new ArrayList<>();
         productionAdapter = new ProductionAdapter(productionList, this);
 
         recyclerView = (RecyclerView) findViewById(R.id.production_recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerView.setAdapter(productionAdapter);
         recyclerView.addOnItemTouchListener(
-                new RecyclerViewItemClickListener(this, new RecyclerViewItemClickListener.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        Intent detailIntent = new Intent(MainActivity.this, DetailActivity.class);
-                        detailIntent.putExtra(DetailActivity.EXTRA_PARAM, productionList.get(position));
+                new RecyclerViewItemClickListener(this, (view, position) -> {
+                    Intent detailIntent = new Intent(MainActivity.this, DetailActivity.class);
+                    detailIntent.putExtra(DetailActivity.EXTRA_PARAM, productionList.get(position));
 
-                        Pair imagePair = new Pair<>(view.findViewById(R.id.list_item_poster_image_view), DetailActivity.IMAGE_TRANSITION_NAME);
-                        Pair titlePair = new Pair<>(view.findViewById(R.id.list_item_title_text_view), DetailActivity.TITLE_TRANSITION_NAME);
-                        Pair backgroundPair = new Pair<>(view.findViewById(R.id.list_item_info_layout), DetailActivity.BACKGROUND_TRANSITION_NAME);
+                    Pair imagePair = new Pair<>(view.findViewById(R.id.list_item_poster_image_view), DetailActivity.IMAGE_TRANSITION_NAME);
+                    Pair titlePair = new Pair<>(view.findViewById(R.id.list_item_title_text_view), DetailActivity.TITLE_TRANSITION_NAME);
+                    Pair backgroundPair = new Pair<>(view.findViewById(R.id.list_item_info_layout), DetailActivity.BACKGROUND_TRANSITION_NAME);
 
-                        ActivityOptionsCompat transitionActivityOptions =
-                                ActivityOptionsCompat.makeSceneTransitionAnimation(
-                                        MainActivity.this, imagePair, titlePair, backgroundPair);
+                    ActivityOptionsCompat transitionActivityOptions =
+                            ActivityOptionsCompat.makeSceneTransitionAnimation(
+                                    MainActivity.this, imagePair, titlePair, backgroundPair);
 
-                        ActivityCompat.startActivity(MainActivity.this,
-                                detailIntent, transitionActivityOptions.toBundle());
-                    }
+                    ActivityCompat.startActivity(MainActivity.this,
+                            detailIntent, transitionActivityOptions.toBundle());
                 }));
 
-        // Retrofit setup
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://netflixroulette.net")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        flixService = retrofit.create(FlixService.class);
+        flixService = FlixService.createFlixService();
 
         // Auto-search after startup for testing
         startSearch("Harrison Ford");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (subscriptions == null || subscriptions.isUnsubscribed()) {
+            subscriptions = new CompositeSubscription();
+        }
     }
 
     private void startSearch(String query) {
         progressDialog = ProgressDialog.show(this, "Loading Productions",
                 "Please wait...", true);
 
-        Call<List<Production>> productions = flixService.listProductions(query);
-        productions.enqueue(new Callback<List<Production>>() {
-            @Override
-            public void onResponse(Response<List<Production>> response, Retrofit retrofit) {
-                productionList = response.body();
+        productionList.clear();
 
-                productionAdapter = new ProductionAdapter(productionList, getApplicationContext());
-                recyclerView.setAdapter(productionAdapter);
+        subscriptions.add(
+                flixService.listProductions(query)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Observer<List<Production>>() {
+                            @Override
+                            public void onCompleted() {
 
-                progressDialog.dismiss();
+                            }
 
-                // Alert user if no results are returned from the service
-                if (productionList == null) {
-                    Snackbar.make(recyclerView, "No results found.", Snackbar.LENGTH_LONG).show();
-                }
-            }
+                            @Override
+                            public void onError(Throwable e) {
+                                e.printStackTrace();
+                            }
 
-            @Override
-            public void onFailure(Throwable t) {
-                t.printStackTrace();
-            }
-        });
+                            @Override
+                            public void onNext(List<Production> productions) {
+                                progressDialog.dismiss();
+
+                                for (Production p : productions) {
+                                    productionList.add(p);
+                                }
+
+                                productionAdapter = new ProductionAdapter(productionList, getApplicationContext());
+                                recyclerView.setAdapter(productionAdapter);
+
+                                // Alert user if no results are returned from the service
+                                if (productionList == null) {
+                                    Snackbar.make(recyclerView, "No results found.", Snackbar.LENGTH_LONG).show();
+                                }
+                            }
+                        }));
     }
 
     private void voiceSearch() {
@@ -123,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             startActivityForResult(intent, SPEECH_REQUEST_CODE);
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 
@@ -137,8 +149,6 @@ public class MainActivity extends AppCompatActivity {
                     ArrayList<String> result = data.getStringArrayListExtra(
                             RecognizerIntent.EXTRA_RESULTS);
                     startSearch(result.get(0));
-
-                    Log.i(TAG, "onActivityResult " + result);
                 }
         }
     }
